@@ -247,7 +247,7 @@ namespace Sorting
             double[] c = new double[a.Length + b.Length];
             int i = 0;
             int j = 0;
-            while (i < a.Length && j < b.Length) //heres a problem 
+            while (i < a.Length && j < b.Length) 
             {
                 if (a[i]>b[j])
                 {
