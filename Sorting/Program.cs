@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Collections.Generic;
 
 namespace Sorting
 {
@@ -16,8 +17,7 @@ namespace Sorting
             {
                 arr[i] = rnd.NextDouble() * 100;
             }
-            HeapSort.Sort(arr, out TimeSpan bubbleTime, out long mem);
-            Console.WriteLine(bubbleTime);
+
             Console.WriteLine(@"Please choose one or several sorting alghorithms from the following options:
 1. Insertion sort
 2. Bubble sort
@@ -25,15 +25,112 @@ namespace Sorting
 4. Heap sort
 5. Merge sort
 6. All");
-            string selection = Console.ReadLine();
 
+            string selection = Console.ReadLine();
+            if (selection.Contains(' '))
+            {
+                selection.Remove(' ');
+            }
+            List<int> numbers = new List<int>();
+            if (selection.Length == 1 && Convert.ToInt32(selection) >= 1 && Convert.ToInt32(selection) <= 6)
+            {
+                if (selection == "6")
+                {
+                    for (int i = 0; i < 5; i++)
+                    {
+                        numbers.Add(i);
+                    }
+                    Sorting(arr, numbers);
+                }
+                else
+                {
+                    numbers.Add(Convert.ToInt32(selection) - 1);
+                    Sorting(arr, numbers);
+                }
+            }
+
+            if (selection.Length == 3 && selection[1] == '-')
+            {
+                if (Convert.ToInt32(selection[0]) > 0 && Convert.ToInt32(selection[0]) < 5 && Convert.ToInt32(selection[2]) > 0 && Convert.ToInt32(selection[2]) < 6 && Convert.ToInt32(selection[0]) != Convert.ToInt32(selection[1]))
+                {
+                    for (int i = Convert.ToInt32(selection[0]) - 1; i < Convert.ToInt32(selection[1]); i++)
+                    {
+                        numbers.Add(i);
+                        Sorting(arr, numbers);
+                    }
+                }
+            }
+            else if (selection.Contains(','))
+            {
+                selection.Remove(',');
+                for (int i = 0; i < selection.Length; i++)
+                {
+                    if (Convert.ToInt32(selection[i]) > 0 && Convert.ToInt32(selection[i]) < 6)
+                    {
+                        numbers.Add(Convert.ToInt32(selection[0]) - 1);
+                    }
+                }
+                Sorting(arr, numbers);
+            }
+        }
+
+        private static void Sorting(double[] arr, List<int> numbers)
+        {
+
+            var InsertionSort = new Insertion();
+            var BubbleSort = new Bubble();
+            var QuickSort = new Quick();
+            var HeapSort = new Heap();
+            var MergeSort = new Merge();
+            ISorter[] Sorters = new ISorter[] { InsertionSort, BubbleSort, QuickSort, HeapSort, MergeSort };
+            TimeSpan minTime;
+
+            List<TimeSpan> timeList = new List<TimeSpan>();
+            List<long> memoryList = new List<long>();
+
+            foreach (var i in numbers)
+            {
+                Sorters[i].Sort(arr, out TimeSpan sortTime, out long usedMemory);
+                timeList.Add(sortTime);
+                memoryList.Add(usedMemory);
+            }
+            minTime = timeList[0];
+            foreach (var time in timeList)
+            {
+                if (minTime > time)
+                {
+                    minTime = time;
+                }
+            }
+            for (int i = 0; i < 5; i++)
+            {
+                Console.WriteLine(Sorters[i].ToString());
+                Console.Write("Running Time: ");
+                if (timeList[i] == minTime)
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.Write("The Fastest! ");
+                    Console.WriteLine(timeList[i]);
+                    Console.ResetColor();
+                }
+                else
+                {
+                    Console.WriteLine(timeList[i]);
+                }
+                Console.WriteLine($"Memory Used {memoryList[i]}");
+                Console.WriteLine();
+            }
         }
     }
 
-
-    static class InsertionSort
+    interface ISorter
     {
-        public static void Sort(double[] arr, out TimeSpan sortTime, out long usedMemory)
+        public void Sort(double[] arr, out TimeSpan sortTime, out long usedMemory);
+    }
+
+    class Insertion : ISorter
+    {
+        public void Sort(double[] arr, out TimeSpan sortTime, out long usedMemory)
         {
             Stopwatch stopwatch = new Stopwatch();
             var startMemory = GC.GetTotalMemory(true);
@@ -56,11 +153,16 @@ namespace Sorting
             var endMemory = GC.GetTotalMemory(false);
             usedMemory = endMemory - startMemory;
         }
+
+        public override string ToString()
+        {
+            return "Insertion Sort";
+        }
     }
 
-    static class BubbleSort
+    class Bubble : ISorter
     {
-        public static void Sort(double[] arr, out TimeSpan sortTime, out long usedMemory)
+        public void Sort(double[] arr, out TimeSpan sortTime, out long usedMemory)
         {
             Stopwatch stopwatch = new Stopwatch();
             var startMemory = GC.GetTotalMemory(true);
@@ -91,11 +193,16 @@ namespace Sorting
             var endMemory = GC.GetTotalMemory(true);
             usedMemory = endMemory - startMemory;
         }
+
+        public override string ToString()
+        {
+            return "Bubble Sort";
+        }
     }
 
-    static class MergeSort
+    class Merge : ISorter
     {
-        public static void Sort(double[] arr, out TimeSpan sortTime, out long usedMemory)
+        public void Sort(double[] arr, out TimeSpan sortTime, out long usedMemory)
         {
             Stopwatch stopwatch = new Stopwatch();
             var startMemory = GC.GetTotalMemory(false);
@@ -109,7 +216,7 @@ namespace Sorting
             usedMemory = endMemory - startMemory;
         }
 
-        private static double[] Devide(double[] arr)
+        private double[] Devide(double[] arr)
         {
             if (arr.Length == 1)
             {
@@ -131,11 +238,11 @@ namespace Sorting
                 arr1 = Devide(arr1);
                 arr2 = Devide(arr2);
 
-                return Merge(arr1, arr2);
+                return merge(arr1, arr2);
             }
         }
 
-        private static double[] Merge(double[] a, double[] b)
+        private double[] merge(double[] a, double[] b)
         {
             double[] c = new double[a.Length + b.Length];
             int i = 0;
@@ -165,11 +272,16 @@ namespace Sorting
             }
             return c;
         }
+
+        public override string ToString()
+        {
+            return "Merge Sort";
+        }
     }
 
-    static class QuickSort
+    class Quick : ISorter
     {
-        public static void Sort(double[] arr, out TimeSpan sortTime, out long usedMemory)
+        public void Sort(double[] arr, out TimeSpan sortTime, out long usedMemory)
         {
             Stopwatch stopwatch = new Stopwatch();
             var startMemory = GC.GetTotalMemory(false);
@@ -177,17 +289,13 @@ namespace Sorting
             arr.CopyTo(newarr, 0);
             stopwatch.Start();
             Devide(newarr, 0, newarr.Length-1);
-            for (int i = 0; i < newarr.Length; i++)
-            {
-                Console.WriteLine(newarr[i]);
-            }
             stopwatch.Stop();
             sortTime = stopwatch.Elapsed;
             var endMemory = GC.GetTotalMemory(false);
             usedMemory = endMemory - startMemory;
         }
 
-        private static void Devide(double[] arr, int low , int high)
+        private void Devide(double[] arr, int low , int high)
         {
             if (low < high)
             {
@@ -197,7 +305,7 @@ namespace Sorting
             }
         }
 
-        private static int Partition(double[] arr, int low, int high)
+        private int Partition(double[] arr, int low, int high)
         {
             double pivot = arr[low];
             while (true)
@@ -226,11 +334,16 @@ namespace Sorting
                 }
             }
         }
+
+        public override string ToString()
+        {
+            return "Quick Sort";
+        }
     }
 
-    static class HeapSort
+    class Heap : ISorter
     {
-        public static void Sort(double[] arr, out TimeSpan sortTime, out long usedMemory)
+        public void Sort(double[] arr, out TimeSpan sortTime, out long usedMemory)
         {
             Stopwatch stopwatch = new Stopwatch();
             var startMemory = GC.GetTotalMemory(false);
@@ -253,13 +366,9 @@ namespace Sorting
             sortTime = stopwatch.Elapsed;
             var endMemory = GC.GetTotalMemory(false);
             usedMemory = endMemory - startMemory;
-            for (int i = 0; i < newarr.Length; i++)
-            {
-                Console.WriteLine(newarr[i]);
-            }
         }
 
-        private static void Heapify(double[] arr, int n, int i)
+        private void Heapify(double[] arr, int n, int i)
         {
             int max = i;
             int left = 2*i + 1;
@@ -280,6 +389,11 @@ namespace Sorting
                 arr[max] = current;
                 Heapify(arr, n , max);
             }
+        }
+
+        public override string ToString()
+        {
+            return "Heap Sort";
         }
     }
 }
