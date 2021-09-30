@@ -247,7 +247,7 @@ namespace Sorting
             double[] c = new double[a.Length + b.Length];
             int i = 0;
             int j = 0;
-            while (i < a.Length && j < b.Length) 
+            while (i < a.Length && j < b.Length)
             {
                 if (a[i]>b[j])
                 {
@@ -288,25 +288,33 @@ namespace Sorting
             double[] newarr = new double[arr.Length];
             arr.CopyTo(newarr, 0);
             stopwatch.Start();
-            Devide(newarr, 0, newarr.Length-1);
+            Devide(newarr, 0, newarr.Length-1, out long usedMemoryDevision);
             stopwatch.Stop();
             sortTime = stopwatch.Elapsed;
             var endMemory = GC.GetTotalMemory(false);
-            usedMemory = endMemory - startMemory;
+            usedMemory = endMemory - startMemory + usedMemoryDevision;
         }
 
-        private void Devide(double[] arr, int low , int high)
+        private void Devide(double[] arr, int low , int high, out long usedMemoryDevision)
         {
             if (low < high)
             {
-                int pivotLoc = Partition(arr, low, high);
-                Devide(arr, low, pivotLoc-1);
-                Devide(arr, pivotLoc+1, high);
+                var startMemory = GC.GetTotalMemory(false);
+                int pivotLoc = Partition(arr, low, high, out long usedMemoryPartioning);
+                Devide(arr, low, pivotLoc-1, out long usedMemory1);
+                Devide(arr, pivotLoc+1, high, out long usedMemory2);
+                var endMemory = GC.GetTotalMemory(false);
+                usedMemoryDevision = endMemory - startMemory + usedMemoryPartioning + usedMemory1 + usedMemory2;
+            }
+            else
+            {
+                usedMemoryDevision = 0;
             }
         }
 
-        private int Partition(double[] arr, int low, int high)
+        private int Partition(double[] arr, int low, int high, out long usedMemoryPartioning)
         {
+            var startMemory = GC.GetTotalMemory(false);
             double pivot = arr[low];
             while (true)
             {
@@ -322,6 +330,9 @@ namespace Sorting
                 {
                     if (arr[low] == arr[high])
                     {
+
+                        var endMemory = GC.GetTotalMemory(false);
+                        usedMemoryPartioning = endMemory - startMemory;
                         return high;
                     }
                     double current = arr[low];
@@ -330,6 +341,8 @@ namespace Sorting
                 }
                 else
                 {
+                    var endMemory = GC.GetTotalMemory(false);
+                    usedMemoryPartioning = endMemory - startMemory;
                     return high;
                 }
             }
@@ -347,29 +360,34 @@ namespace Sorting
         {
             Stopwatch stopwatch = new Stopwatch();
             var startMemory = GC.GetTotalMemory(false);
+            long usedMemoryInner = 0;
             double[] newarr = new double[arr.Length];
             arr.CopyTo(newarr, 0);
             stopwatch.Start();
             int n = arr.Length;
             for (int i = n / 2 - 1; i >= 0; i--)
             {
-                Heapify(newarr, n, i);
+                Heapify(newarr, n, i, out long usedMemory1);
+                usedMemoryInner += usedMemory1;
             }
             for (int i = n - 1; i >= 0; i--)
             {
                 double current = newarr[0];
                 newarr[0] = newarr[i];
                 newarr[i] = current;
-                Heapify(newarr, i, 0);
+                Heapify(newarr, i, 0, out long usedMemory2);
+                usedMemoryInner += usedMemory2;
             }
             stopwatch.Stop();
             sortTime = stopwatch.Elapsed;
             var endMemory = GC.GetTotalMemory(false);
-            usedMemory = endMemory - startMemory;
+            usedMemory = endMemory - startMemory + usedMemoryInner;
         }
 
-        private void Heapify(double[] arr, int n, int i)
+        private void Heapify(double[] arr, int n, int i, out long usedMemoryHeapify)
         {
+            var startMemory = GC.GetTotalMemory(false);
+            long usedMemoryInner = 0;
             int max = i;
             int left = 2*i + 1;
             int right = 2*i + 2;
@@ -387,8 +405,11 @@ namespace Sorting
                 double current = arr[i];
                 arr[i] = arr[max];
                 arr[max] = current;
-                Heapify(arr, n , max);
+                Heapify(arr, n , max, out long usedMemory1);
+                usedMemoryInner += usedMemory1;
             }
+            var endMemory = GC.GetTotalMemory(false);
+            usedMemoryHeapify = endMemory - startMemory + usedMemoryInner;
         }
 
         public override string ToString()
