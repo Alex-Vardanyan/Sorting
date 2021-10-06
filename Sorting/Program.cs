@@ -232,17 +232,20 @@ namespace Sorting
             double[] newarr = new double[arr.Length];
             arr.CopyTo(newarr, 0);
             stopwatch.Start();
-            Devide(newarr).CopyTo(newarr,0);
+            Devide(newarr, out long usedMemoryInner).CopyTo(newarr,0);
             stopwatch.Stop();
             sortTime = stopwatch.Elapsed;
             var endMemory = GC.GetTotalMemory(false);
-            usedMemory = endMemory - startMemory;
+            usedMemory = endMemory - startMemory + usedMemoryInner;
         }
 
-        private double[] Devide(double[] arr)
+        private double[] Devide(double[] arr, out long usedMemory)
         {
+            var startMemory = GC.GetTotalMemory(false);
             if (arr.Length == 1)
             {
+                var endMemory = GC.GetTotalMemory(false);
+                usedMemory = endMemory - startMemory;
                 return arr;
             }
             else
@@ -258,15 +261,20 @@ namespace Sorting
                     arr2[i] = arr[arr.Length / 2 + i];
                 }
 
-                arr1 = Devide(arr1);
-                arr2 = Devide(arr2);
+                arr1 = Devide(arr1, out long usedMemoryInner1);
+                arr2 = Devide(arr2, out long usedMemoryInner2);
 
-                return merge(arr1, arr2);
+                double[] c =  merge(arr1, arr2, out long usedMemoryInner3);
+
+                var endMemory = GC.GetTotalMemory(false);
+                usedMemory = endMemory - startMemory + usedMemoryInner1 + usedMemoryInner2 + usedMemoryInner3;
+                return c;
             }
         }
 
-        private double[] merge(double[] a, double[] b)
+        private double[] merge(double[] a, double[] b, out long usedMemory)
         {
+            var startMemory = GC.GetTotalMemory(false);
             double[] c = new double[a.Length + b.Length];
             int i = 0;
             int j = 0;
@@ -293,6 +301,8 @@ namespace Sorting
                 c[i+j] = b[j];
                 j++;
             }
+            var endMemory = GC.GetTotalMemory(false);
+            usedMemory = endMemory - startMemory;
             return c;
         }
 
