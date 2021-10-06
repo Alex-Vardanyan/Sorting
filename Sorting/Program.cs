@@ -29,7 +29,7 @@ namespace Sorting
             string selection = Console.ReadLine();
             if (selection.Contains(' '))
             {
-                selection.Remove(' ');
+                selection = selection.Replace(" ", "");
             }
             List<int> numbers = new List<int>();
             if (selection.Length == 1 && Convert.ToInt32(selection) >= 1 && Convert.ToInt32(selection) <= 6)
@@ -49,28 +49,49 @@ namespace Sorting
                 }
             }
 
-            if (selection.Length == 3 && selection[1] == '-')
+            else if (selection.Length == 3 && selection[1] == '-')
             {
-                if (Convert.ToInt32(selection[0]) > 0 && Convert.ToInt32(selection[0]) < 5 && Convert.ToInt32(selection[2]) > 0 && Convert.ToInt32(selection[2]) < 6 && Convert.ToInt32(selection[0]) != Convert.ToInt32(selection[1]))
+                if (Convert.ToInt32(selection[0].ToString()) > 0 && Convert.ToInt32(selection[2].ToString()) > 0)
                 {
-                    for (int i = Convert.ToInt32(selection[0]) - 1; i < Convert.ToInt32(selection[1]); i++)
+                    if (Convert.ToInt32(selection[2].ToString()) < 6 && Convert.ToInt32(selection[0].ToString()) < Convert.ToInt32(selection[2].ToString()))
                     {
-                        numbers.Add(i);
+                        for (int i = Convert.ToInt32(selection[0].ToString()) - 1; i < Convert.ToInt32(selection[2].ToString()); i++)
+                        {
+                            numbers.Add(i);
+                        }
                         Sorting(arr, numbers);
                     }
+                    else
+                    {
+                        throw new Exception("The selection went wrong, try again");
+                    }
+                }
+                else
+                {
+                    throw new Exception("The selection went wrong, try again");
                 }
             }
+
             else if (selection.Contains(','))
             {
-                selection.Remove(',');
+                selection = selection.Replace(",", "");
                 for (int i = 0; i < selection.Length; i++)
                 {
-                    if (Convert.ToInt32(selection[i]) > 0 && Convert.ToInt32(selection[i]) < 6)
+                    if (Convert.ToInt32(selection[i].ToString()) > 0 && Convert.ToInt32(selection[i].ToString()) < 6)
                     {
-                        numbers.Add(Convert.ToInt32(selection[0]) - 1);
+                        numbers.Add(Convert.ToInt32(selection[i].ToString()) - 1);
+                    }
+                    else
+                    {
+                        throw new Exception("The selection went wrong, try again");
                     }
                 }
                 Sorting(arr, numbers);
+            }
+            
+            else
+            {
+                throw new Exception("The selection went wrong, try again");
             }
         }
 
@@ -102,29 +123,31 @@ namespace Sorting
                     minTime = time;
                 }
             }
-            for (int i = 0; i < 5; i++)
+            int j = 0;
+            foreach (var i in numbers)
             {
                 Console.WriteLine(Sorters[i].ToString());
                 Console.Write("Running Time: ");
-                if (timeList[i] == minTime)
+                    if (timeList[j] == minTime && numbers.Count != 1)
                 {
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.Write("The Fastest! ");
-                    Console.WriteLine(timeList[i]);
+                    Console.WriteLine(timeList[j]);
                     Console.ResetColor();
                 }
                 else
                 {
-                    Console.WriteLine(timeList[i]);
+                    Console.WriteLine(timeList[j]);
                 }
-                Console.WriteLine($"Memory Used {memoryList[i]}");
+                Console.WriteLine($"Memory Used {memoryList[j]}");
                 Console.WriteLine();
+                j++;
             }
         }
     }
 
     interface ISorter
-    {
+    {   
         public void Sort(double[] arr, out TimeSpan sortTime, out long usedMemory);
     }
 
